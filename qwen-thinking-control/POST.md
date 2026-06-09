@@ -1,6 +1,6 @@
 # Getting Qwen to stop thinking
 
-*June 2026 · by [Erik LaBianca](https://x.com/easel)*
+*June 2026 · by [Erik](https://x.com/easel)*
 
 I wanted Qwen to be the model.
 
@@ -31,7 +31,7 @@ The first result was worse.
 That sent me into the gory details: Qwen papers, provider flags, `/no_think`,
 budget hints, model cards, token counters, and forced closes.
 
-## The flag wasn't the mode
+## OpenRouter still let it think
 
 The first bug was boring and important. I asked for nothink, but OpenRouter's
 routed provider still let the model think.

@@ -1,6 +1,6 @@
 # Qwen3.6 think vs nothink across providers: thinking helps, if you budget for it
 
-*May 2026 · by [Erik LaBianca](https://x.com/easel)*
+*May 2026 · by [Erik](https://x.com/easel)*
 
 We ran the same Qwen3.6-27B on ds4-eval-92 across four serving stacks, in both
 think and nothink mode, graded on one pinned grader. Nothink is steady: a tight

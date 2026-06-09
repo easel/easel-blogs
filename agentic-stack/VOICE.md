@@ -1,252 +1,216 @@
 # Blog Voice
 
-This should read like one engineer writing up a problem after chasing it far
-enough to have useful numbers.
+This is a personal technical blog voice. It should sound like one engineer
+writing up something he actually tried, not a content strategy document wrapped
+around a benchmark.
 
-The tone is practical, first person, and specific. It can be a little impatient
-with bad abstractions, but it shouldn't sound like a launch post.
+The model to aim for is closer to a good engineering note from Simon Willison,
+Mitchell Hashimoto, or an old personal sysadmin blog: concrete setup, plain
+stakes, specific measurements, honest caveats, and enough narrative flow that
+the reader can follow how the conclusion was reached.
 
-## What It Sounds Like
+## Core Shape
 
-Start from the work:
+Start with the situation, not the thesis.
 
-- what was bothering me
-- what I measured
-- what hardware, software, or logs were involved
-- what surprised me
-- what I still don't know
+Good technical posts usually have a human reason for existing: I wanted to use a
+tool, I expected a result, something did not match, so I investigated. That is a
+better opening than explaining the category or naming the lesson up front.
 
-The older blog posts usually open with a concrete problem, not a thesis
-statement. They name the machine, stack, or service early. They are willing to
-say "I don't know yet" when the numbers stop short.
+Use this shape:
 
-For this post, start with the mismatch:
+1. What I was trying to do.
+2. What I expected.
+3. What did not match.
+4. What I checked.
+5. What the evidence changed.
+6. What I now think.
 
-- I have been collecting hardware that should be able to run local models.
-- I keep seeing reports that local inference is fast.
-- I wondered if I was doing something wrong.
-- The agent felt slow between steps, not while it was streaming.
-- That sent me to the logs.
+Do not turn that sequence into six one-sentence paragraphs. Let related ideas
+stay together.
 
-Do not open with "benchmark shapes" or "the discourse." Those are conclusions
-from the investigation, not the reason to keep reading.
+## Paragraphs
 
-The useful sequence is:
+Stop writing outline prose.
 
-1. I had a practical expectation.
-2. My setup did not behave that way.
-3. I wondered whether I was doing something wrong.
-4. I checked the logs.
-5. The logs changed the question.
+A post should not read like fifty two-sentence blocks. Use paragraphs with
+enough mass to carry a thought. A normal paragraph can be four to seven
+sentences if the sentences belong together. Short paragraphs are useful for
+emphasis, but if every paragraph is short, none of them land.
 
-That sequence is better than starting with a claim about benchmarks, local
-models, or inference stacks. The post should feel like an investigation catching
-up to a problem, not a thesis looking for evidence after the fact.
-
-Use the first person when that's the honest source of the observation:
+Combine sentences when they are part of the same move:
 
 ```text
-I've been accumulating hardware capable of running local models for years. At
-the same time, I kept seeing reports about how fast some local setup was. So I
-kept wondering: is it just me?
+I wanted Qwen to be the model. It ran locally, was fast enough, and had a real
+thinking mode. In nothink, it was boring in the useful way: Qwen3.6-27B stayed
+in the same band across lucebox, MLX, and OpenRouter on ds4-eval-92.
 ```
 
-Use "we" for shared measurements from the lab or repo work:
+Avoid chopping that into:
 
 ```text
-We have enough Codex and Claude logs to see the shape of the cache behavior.
-We don't have a perfect provider-controlled experiment, and I'm not going to
-pretend otherwise.
+I wanted Qwen to be the model.
+
+It ran locally.
+
+It was fast enough.
+
+It had a real thinking mode.
 ```
 
-## Sentence Feel
+The first version has flow. Chopped-up prose sounds like generated drama.
 
-Use normal technical-blog English:
+## Voice
 
-- contractions are fine
-- short blunt sentences are fine
-- longer mechanical explanations are fine when the mechanism matters
-- a dry aside is fine after the concrete point has landed
-- avoid em dashes in prose
-
-Good:
+Use first person when the claim comes from your work:
 
 ```text
-I would watch the agent sit between steps, not while it was writing. Waiting
-happened before the next tool call, before the next patch, before the next useful
-token.
+I kept seeing fast local runs while my own agent loop still felt slow.
 ```
-
-Also good:
 
 ```text
-The local run isn't fake. It's just answering a different question.
+I asked for nothink, but the provider still let the model reason.
 ```
 
-Bad:
+Use "we" only for shared lab work, shared code, or shared measurements. Do not
+use it to create fake authority.
 
-```text
-This benchmark unlocks a new understanding of the agentic inference landscape.
-```
+Contractions are normal. Use them whenever they sound like how you would say the
+sentence:
 
-Also bad:
+- it's
+- we're
+- can't
+- don't
+- didn't
+- wasn't
+- weren't
+- isn't
+- aren't
 
-```text
-The logs pointed at the gap.
-```
-
-Better:
-
-```text
-Digging into the agent session logs made the difference clear.
-```
-
-Prefer verbs that name what happened: watched, waited, checked, measured,
-compared, replayed, counted. Avoid abstract verbs that make the prose sound like
-a summary of itself.
-
-## Section Titles
-
-Section titles should sound like the investigation moving forward.
-
-Use:
-
-```text
-The numbers looked real
-The pause was between steps
-Every turn gets bigger
-The benchmark was measuring the easy part
-```
-
-Avoid:
-
-```text
-Benchmark shape problem
-Provider and runtime differences
-What the evidence does and doesn't prove
-```
-
-The bad versions are accurate, but they sound like outline labels. The good
-versions make a reader want the next paragraph.
+Do not mechanically replace every formal phrase. Some sentences want "it is."
+Most blog prose does not.
 
 ## Evidence
 
-Numbers need provenance. Put the setup close to the claim.
+Put evidence close to the claim it proves or qualifies. Do not build a separate
+evidence museum at the end and ask the reader to connect it back.
 
-Include the details that change how the reader should interpret the result:
+Good:
 
-- data source
-- machine or provider
-- model and quantization
-- prompt length or context bucket
-- number of turns or tasks
-- timing metric
+```text
+On OpenRouter, unbudgeted thinking scored 48.9, below the 72.8 nothink run. The
+run did not fail because the reasoning was useless. It failed because 32 of 92
+rows hit the length cap and left no parseable answer.
+```
+
+Weak:
+
+```text
+The results demonstrate that reasoning control is important.
+```
+
+Numbers need context:
+
+- benchmark or log source
+- model and serving path
+- mode or config
+- sample size
+- metric
 - caveat
 
-Good:
+If the caveat changes how the reader should interpret the number, say it in the
+same paragraph.
+
+## Headings
+
+Headings are navigation first. They should help the reader understand where the
+post is going without turning every section into a punchline.
+
+Armin Ronacher's titles are a good reference point: short, direct, sometimes
+opinionated, but not trying too hard. "Pushing Local Models With Focus And
+Polish" and "Content for Content's Sake" work because they name the concern in
+plain language. Steve Yegge is the counterpoint: his titles and section moves
+can be funny, ranty, and oversized, but that only works because the entire post
+is operating in that register. Borrow the confidence, not the sprawl.
+
+Use headings that are either:
+
+- plain: `Nothink was stable`
+- mechanical: `One cap can't control two phases`
+- direct: `OpenRouter still let it think`
+
+Avoid headings that sound like internal planning artifacts:
 
 ```text
-In the Fizeau terminal-bench logs, Qwen on OpenRouter has 0.80s median TTFT in
-the 0-10k bucket and 4.15s in the 60-120k bucket.
+Provider control portability
+Budget enforcement mechanism
+Benchmark shape problem
+What the evidence supports
 ```
 
-Good:
-
-```text
-Codex session records show a 96.5% aggregate cached-input share. That's not a
-model property. That's the serving stack avoiding repeated prefill.
-```
-
-Bad:
-
-```text
-Hosted providers are obviously better optimized.
-```
-
-If the measurement only gets partway there, say that directly:
-
-```text
-This doesn't isolate model from provider. That's fine for this question. The
-thing I'm trying to explain is the latency a coding agent actually sees.
-```
-
-## Attitude
-
-Be fair to the thing being criticized.
-
-Local inference is useful. Public throughput benchmarks can be accurate. Hosted
-providers can still be slow in the wrong workload. The point is to separate
-decode speed from agent latency and show where each number applies.
-
-Avoid dunking. Avoid grandstanding. Don't write like the post has discovered
-the one true answer. A useful posture is closer to:
-
-```text
-Here are the numbers I could get. Here is what they explain. Here is where they
-stop explaining things.
-```
-
-## Examples To Prefer
-
-Opening:
-
-```text
-I've been accumulating hardware capable of running local models for years. A
-3090 here, newer Apple Silicon there, access to bigger boxes when I could get
-it. At the same time, I kept seeing breathless reports about how fast some local
-setup was.
-```
-
-Transition:
-
-```text
-That sent me back to the logs. I was not mostly waiting on decode. I was waiting
-on the cost of getting a long, growing session back through the server on every
-turn.
-```
-
-Caveat:
-
-```text
-This is not an apples-to-apples model benchmark. It is closer to the thing I
-care about: what a coding agent feels like when the context is already deep.
-```
-
-Closing:
-
-```text
-The fast-local-model reports were not wrong. They just did not explain the thing
-I was waiting on.
-```
+Also avoid forcing every heading into the same cute pattern. If the section is a
+table of results, call it `The results`. If the section is a mechanism, call it
+`How the force-close works`. A boring heading is better than a strained one.
 
 ## What To Cut
 
 Cut sentences that:
 
+- explain why the post is important
 - praise the post's own insight
-- announce importance instead of showing a consequence
-- use sales words for technical behavior
-- turn one run into a universal rule
-- summarize without adding a decision, caveat, or next step
-- repeat the same rhythm for several paragraphs
+- restate the heading
+- summarize before showing the evidence
+- use a global claim when the evidence is one benchmark or one machine
+- introduce a contrast just to sound punchy
+- repeat the same reversal pattern as a rhythm
 
-Cut vague capability claims:
+Cut stock phrases:
 
-- claims that the workflow has no friction
-- claims that the system handles broad workloads
-- rank claims without a benchmark set
-- claims that a change remakes the category
-- readiness claims without naming the workload
-- optimization claims without naming the optimization
+- "the discourse"
+- "unlocking"
+- "the landscape"
+- "transformative"
+- "optimized" without naming the optimization
 
-Replace them with the operation:
+Replace abstract verbs with concrete ones:
 
-```text
-The cache hit means the server didn't reprocess most of the prefix.
-```
+- watched
+- checked
+- counted
+- replayed
+- compared
+- measured
+- capped
+- truncated
+- cached
+- streamed
 
-Not:
+## Good Blog Behavior
 
-```text
-The platform delivers effortless long-context performance.
-```
+Good posts can admit mistakes. Simon Willison often writes in public with
+updates and corrections when he misreads something. That makes the writing more
+credible, not less. If a run was wrong, a provider ignored a flag, or a number
+changed after rerunning with a pinned grader, say so plainly.
+
+Good posts scope themselves. Mitchell Hashimoto often starts from his own
+project, states that the method may not apply to everyone, and then uses a
+concrete example to carry the argument. Do that here too. Do not imply a
+universal rule when the evidence is one lab's run.
+
+Good posts have connective tissue. The Discord example has it: a short setup,
+then what changed, then how to try it. It does not turn every fact into a new
+section. Blog posts need the same continuity, just with more room for evidence.
+
+## Final Pass
+
+Before calling a draft done, read it once for structure, not grammar:
+
+- Are related sentences grouped into real paragraphs?
+- Does the post start from the work instead of the thesis?
+- Does every section move the investigation forward?
+- Are the tables explained by nearby prose?
+- Are caveats attached to the numbers they qualify?
+- Does the ending land a technical judgment without turning into a manifesto?
+
+Then run the sloptimizer audit.

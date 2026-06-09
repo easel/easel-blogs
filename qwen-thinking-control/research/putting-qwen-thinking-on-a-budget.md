@@ -1,6 +1,6 @@
 # Putting Qwen's thinking on a budget: counting tokens and forcing the close
 
-*May 2026 · by [Erik LaBianca](https://x.com/easel)*
+*May 2026 · by [Erik](https://x.com/easel)*
 
 Qwen3.6 is a strong reasoner when you let it think, and a problem when you try to
 bound how much. We spent a while getting its thinking under control, and the

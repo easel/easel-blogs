@@ -1,6 +1,6 @@
 # The agentic stack is the product, not the model
 
-*May 2026 · by [Erik LaBianca](https://x.com/easel)*
+*May 2026 · by [Erik](https://x.com/easel)*
 
 I've been accumulating hardware capable of running local models for years. A
 3090 here, newer Apple Silicon there, access to bigger boxes when I could get
