@@ -2,11 +2,9 @@
 
 *June 2026 · by [Erik](https://x.com/easel)*
 
-I wanted Qwen to be the model.
-
-It ran locally, was fast enough, and had a real thinking mode. In nothink, it
-was boring in the useful way: Qwen3.6-27B stayed in the same band across
-lucebox, MLX, and OpenRouter on `ds4-eval-92`.
+I wanted Qwen to be the model. It ran locally, was fast enough, and had a real
+thinking mode. In nothink, it was boring in the useful way: Qwen3.6-27B stayed
+in the same band across lucebox, MLX, and OpenRouter on `ds4-eval-92`.
 
 | Serving path | Mode | ds4-eval-92 |
 | --- | --- | ---: |
@@ -15,12 +13,9 @@ lucebox, MLX, and OpenRouter on `ds4-eval-92`.
 | OpenRouter, opaque quant | nothink | 72.8 |
 | MLX 8-bit, Mac Studio M2 Ultra | nothink | 73.9 |
 
-That was a good baseline. It was also not enough. The rows I cared about were
-the ones where I wanted the model to reason.
-
-So I turned thinking on.
-
-The first result was worse.
+That was a good baseline, but it wasn't enough. The rows I cared about were the
+ones where I wanted the model to reason, so I turned thinking on. The first
+result was worse.
 
 | Mode | ds4-eval-92 | Note |
 | --- | ---: | --- |
@@ -29,14 +24,13 @@ The first result was worse.
 | think, budgeted | 76.1 | force-close on 44/92 |
 
 That sent me into the gory details: Qwen papers, provider flags, `/no_think`,
-budget hints, model cards, token counters, and forced closes.
+budget hints, model cards, token counters, and forced closes. The short version
+is that Qwen wasn't the problem. My control surface was.
 
 ## OpenRouter still let it think
 
 The first bug was boring and important. I asked for nothink, but OpenRouter's
-routed provider still let the model think.
-
-There isn't one portable switch:
+routed provider still let the model think. There isn't one portable switch:
 
 ```json
 "chat_template_kwargs": {"enable_thinking": false},
@@ -47,22 +41,19 @@ There isn't one portable switch:
 MLX honored the chat-template flag. lucebox honored its own thinking field.
 OpenRouter honored none of those in the path I tested. The thing that worked was
 putting `/no_think` in the prompt, which Qwen's template recognizes directly.
-
 After that, returned thinking tokens dropped to zero and the score landed in the
 same nothink band as the local runs.
 
-Lesson: don't trust the request. Check the response. If a nothink run has
-thinking tokens, it's not a nothink run.
+The lesson here is plain: don't trust the request. Check the response. If a
+nothink run has thinking tokens, it's not a nothink run.
 
-## The budget wasn't a budget
+## Budget fields weren't enforced
 
 Turning thinking on uncovered the second bug. `reasoning_effort` and
 `budget_tokens` sound like controls, but they're only controls if the serving
-stack enforces them.
-
-In the OpenRouter path I tested, they didn't. Qwen kept reasoning until the
-response hit the token cap. The grader wasn't seeing bad answers. It was often
-seeing no parseable answer at all.
+stack enforces them. In the OpenRouter path I tested, they didn't. Qwen kept
+reasoning until the response hit the token cap. The grader wasn't seeing bad
+answers. It was often seeing no parseable answer at all.
 
 The per-area scores made the failure mode obvious:
 
@@ -76,21 +67,15 @@ The per-area scores made the failure mode obvious:
 `hellaswag` and `longctx` need short, committed answers. Unbounded thinking ate
 the budget before those answers appeared. `gsm8k` held up better because the
 reasoning was doing useful work, but it still improved once the budget was
-enforced.
+enforced. This wasn't "thinking hurts Qwen." It was "unbounded thinking is a bad
+serving policy."
 
-This wasn't "thinking hurts Qwen." It was "unbounded thinking is a bad serving
-policy."
+## One cap can't control both phases
 
-## One cap can't work
-
-Qwen's thinking response has two phases:
-
-1. reasoning inside `<think> ... </think>`
-2. visible answer after `</think>`
-
-A single `max_tokens` cap can't control both phases. If the cap is loose, the
-model can spend it all in `<think>`. If the cap is tight, the model can close
-the thought block with no room left to answer.
+Qwen's thinking response has two phases: reasoning inside `<think> ... </think>`
+and visible answer after `</think>`. A single `max_tokens` cap can't control
+both. If the cap is loose, the model can spend it all in `<think>`. If the cap
+is tight, the model can close the thought block with no room left to answer.
 
 The serving stack needs three numbers:
 
@@ -112,13 +97,12 @@ The sidecar also reserves 4,096 tokens for the visible answer. I kept
 underestimating that reserve. A force-close that leaves no answer budget still
 fails.
 
-## The close has to be trained
+## The server has to close the thought
 
 The fix wasn't a better prompt. "Think less" doesn't do much once the model is
-inside the reasoning trace.
-
-The server has to count generated tokens. When reasoning gets close to the reply
-reserve, it has to force Qwen out of `<think>`.
+inside the reasoning trace. The server has to count generated tokens, and when
+reasoning gets close to the reply reserve, it has to force Qwen out of
+`<think>`.
 
 A bare `</think>` wasn't enough in my tests. It marked the boundary for the
 parser, but it didn't always move the model cleanly into answer mode. The Qwen3
@@ -138,41 +122,35 @@ the trained "wrap up now" path.
 
 When we control the backend, that can happen inside the generation loop. KV
 state stays intact and the model answers with the reasoning still in frame.
-
 When we don't control the backend, luce-bench uses a rougher fallback: watch the
 stream, abort when the reasoning budget is gone, and re-prompt with the same
 trained close. That costs another request. It's still better than letting the
 answer vanish into the cap.
 
-## Budgeted thinking was the model I wanted
+## Budgeted thinking was the useful mode
 
 Once the budget was enforced, Qwen looked like the model I had been trying to
-use.
-
-OpenRouter went from 48.9 unbudgeted to 76.1 budgeted. MLX 8-bit hit 83.7 with
-budgeted thinking, up from 73.9 nothink. The OpenRouter force-close fired on 44
-of 92 rows. The MLX run fired on 50 of 92. Both recorded zero continuation
+use. OpenRouter went from 48.9 unbudgeted to 76.1 budgeted. MLX 8-bit hit 83.7
+with budgeted thinking, up from 73.9 nothink. The OpenRouter force-close fired
+on 44 of 92 rows. The MLX run fired on 50 of 92. Both recorded zero continuation
 failures.
 
-Nothink is still useful. It is cheap, steady, and easy to compare across
+Nothink is still useful. It's cheap, steady, and easy to compare across
 providers. But for the harder rows, Qwen's thinking mode needs an actual meter.
 Without one, "thinking" just means "spend the answer budget in scratch space."
 
 ## Where this leaves Qwen
 
-Qwen wasn't the problem. My control surface was.
-
-Nothink gave me a stable baseline. Unbounded thinking gave me expensive
-truncation. Budgeted thinking gave me the model I wanted to use.
+Qwen wasn't the problem. Nothink gave me a stable baseline. Unbounded thinking
+gave me expensive truncation. Budgeted thinking gave me the model I wanted to
+use.
 
 The useful lesson is that reasoning isn't a boolean. For Qwen, it's a resource
 the serving stack has to meter. A server needs to know when thinking started,
 how many tokens it has spent, how much reply budget remains, and how to close
-the reasoning block without stranding the model mid-derivation.
-
-That's serving behavior, not just prompting. If the stack can't count it,
-reserve space after it, and close it on schedule, then thinking mode isn't under
-control.
+the reasoning block without stranding the model mid-derivation. That's serving
+behavior, not just prompting. If the stack can't count it, reserve space after
+it, and close it on schedule, then thinking mode isn't under control.
 
 ## Notes
 
