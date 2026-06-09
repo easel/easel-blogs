@@ -91,20 +91,21 @@ product.
 
 ## Serving path changes the feel
 
-This isn't a clean model benchmark. It's a comparison of what a coding-agent
-workload feels like through different serving paths. The GPT-5.5 paired runs
-made the point. Across 23 overlapping terminal-bench tasks and 1,384 turns,
-TTFT stayed around 1.0 to 1.3 seconds through 60k+ context. Decode was also much
-higher than the Qwen OpenRouter baseline.
+Across 23 overlapping terminal-bench tasks and 1,384 GPT-5.5 direct OpenAI
+turns, TTFT stayed around 1.0 to 1.3 seconds through 60k+ context. Decode was
+also much higher than the Qwen OpenRouter baseline.
 
-The local-provider overlap was broad enough to be useful:
+The timing table:
 
-| Serving path | Turns | Overlapping tasks |
-| --- | ---: | ---: |
-| vLLM Qwen autoround | 1,776 | 77 |
-| OMLX Qwen 8-bit | 3,183 | 78 |
-| llama-server Qwen GGUF | 2,499 | 76 |
-| DS4 | 3,570 | 82 |
+| Serving path | Overlap | Deepest bucket | TTFT p50 | Decode p50 |
+| --- | ---: | --- | ---: | ---: |
+| OpenRouter Qwen3.6 27B | 87 tasks | 60-120k | 4.15s | 41.7 tok/s |
+| OpenRouter Claude 4.6 Sonnet | 5 tasks | 30-60k | 2.36s | 1,184.2 tok/s |
+| OpenRouter GPT-5.4 mini | 5 tasks | 10-30k | 0.90s | 160.5 tok/s |
+| OpenAI GPT-5.5 | 23 tasks | 60-120k | 1.34s | 179.5 tok/s |
+| OMLX Qwen3.6 27B 8-bit | 78 tasks | 60-120k | 23.34s | 11.2 tok/s |
+| llama-server Qwen3.6 GGUF | 76 tasks | 120k+ | 4.13s | 9.3 tok/s |
+| DS4 | 82 tasks | 60-120k | 271.34s | 18.3 tok/s |
 
 Those paths didn't feel the same. vLLM, OMLX, llama-server, OpenRouter, and
 GPT-5.5 all put different latency and decode profiles under roughly similar
