@@ -1,6 +1,6 @@
 # The agentic stack is the product, not the model
 
-*May 2026 · by [Davide Ciffa](https://x.com/davideciffa) and [Erik LaBianca](https://x.com/easel)*
+*May 2026 · by [Erik LaBianca](https://x.com/easel)*
 
 I used to think the model was the thing. Swap in a better model, get a better agent.
 
