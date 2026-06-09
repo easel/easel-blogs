@@ -47,7 +47,7 @@ same nothink band as the local runs.
 The lesson here is plain: don't trust the request. Check the response. If a
 nothink run has thinking tokens, it's not a nothink run.
 
-## Budget fields weren't enforced
+## Missing budget enforcement
 
 Turning thinking on uncovered the second bug. `reasoning_effort` and
 `budget_tokens` sound like controls, but they're only controls if the serving
@@ -97,7 +97,7 @@ The sidecar also reserves 4,096 tokens for the visible answer. I kept
 underestimating that reserve. A force-close that leaves no answer budget still
 fails.
 
-## The server has to close the thought
+## Forcing thinking to end
 
 The fix wasn't a better prompt. "Think less" doesn't do much once the model is
 inside the reasoning trace. The server has to count generated tokens, and when
